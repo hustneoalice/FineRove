@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 import stat
 from pathlib import Path
 
@@ -30,7 +31,12 @@ _SETTINGS = (
 def _reject_legacy(path: Path, setting: str) -> Path:
     resolved = path.expanduser().resolve()
     legacy = (Path.home() / ".octop").resolve()
-    if resolved == legacy or resolved in legacy.parents or legacy in resolved.parents:
+    legacy_password = (Path.home() / "octop-login.txt").resolve()
+    if (
+        resolved in (legacy, legacy_password)
+        or resolved in legacy.parents
+        or legacy in resolved.parents
+    ):
         raise ValueError(
             f"{setting} overlaps the legacy Octop store; choose an independent FineRove path"
         )
@@ -118,6 +124,7 @@ def configure_runtime() -> Path:
     for name in list(os.environ):
         if name.startswith("OCTOP_"):
             del os.environ[name]
+    os.environ["FINEROVE_ACTIVE_HOME"] = str(root)
     os.environ["OCTOP_HOME"] = str(root)
     os.environ["OCTOP_BIND_HOST"] = "127.0.0.1"
     os.environ["OCTOP_PORT"] = "8098"
@@ -125,4 +132,16 @@ def configure_runtime() -> Path:
         if value := os.environ.get("FINEROVE_" + setting):
             os.environ["OCTOP_" + setting] = value
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # Seed before upstream boot so its legacy-home fallback cannot reuse another installation.
+    password_path = root / "octop-login.txt"
+    try:
+        descriptor = os.open(password_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        if password_path.is_symlink() or not password_path.is_file():
+            raise ValueError(
+                "FineRove setup credential must be an independent regular file"
+            ) from None
+    else:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as password_file:
+            password_file.write(secrets.token_urlsafe(24) + "\n")
     return root

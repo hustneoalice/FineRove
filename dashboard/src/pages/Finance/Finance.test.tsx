@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import Finance from "./NeoPanel";
 
 const api = vi.hoisted(() => ({ catalog: vi.fn(), evaluate: vi.fn() }));
 vi.mock("../../api/modules/finance", () => ({ financeApi: api }));
@@ -49,7 +50,6 @@ beforeEach(() => {
 });
 
 async function mount() {
-  const { default: Finance } = await import("./index");
   render(<Finance />);
   await screen.findByRole("button", { name: /NEO 趋势柱线/ });
 }

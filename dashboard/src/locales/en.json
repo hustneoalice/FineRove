@@ -7378,6 +7378,45 @@
     "chart": "Trend histogram result",
     "empty": "No data to display for this range.",
     "verification": "The migrated formula has not been validated point by point. Check against the source market data.",
-    "snapshot": "Data snapshot"
+    "snapshot": "Data snapshot",
+    "native": {
+      "title": "NEO native market workbench",
+      "rejected": "This operation is not available in the workbench yet.",
+      "tooLarge": "The content is too large. Reduce it and try again.",
+      "failed": "Data is temporarily unavailable. Please try again."
+    },
+    "market": {
+      "tab": "Market & watchlist",
+      "neoTab": "NEO indicators",
+      "addWatchlist": "Add to watchlist",
+      "adjust": "Adjustment",
+      "allGroups": "All groups",
+      "chartHint": "MA moving averages · VOL volume; hollow red up candles and solid green down candles.",
+      "close": "Close",
+      "conflict": "Watchlist changed elsewhere. Reloaded; please try again.",
+      "daily": "Daily",
+      "emptyWatchlist": "Your watchlist is empty. Search for a security to add.",
+      "group": "Watchlist group",
+      "hfq": "Forward adjusted",
+      "high": "High",
+      "live": "Open bar",
+      "low": "Low",
+      "noBars": "No market data available",
+      "noResults": "No results",
+      "open": "Open",
+      "qfq": "Backward adjusted",
+      "raw": "Unadjusted",
+      "refresh": "Refresh",
+      "remove": "Remove",
+      "removeWatchlist": "Remove from watchlist",
+      "retry": "Retry",
+      "search": "Search securities",
+      "searchHint": "Enter code or name",
+      "shanghai": "Shanghai Composite",
+      "unconfigured": "Market data service is not configured. Connect a data service.",
+      "watchlist": "Watchlist",
+      "defaultGroup": "Default",
+      "chartLabel": "Daily candlestick chart"
+    }
   }
 }

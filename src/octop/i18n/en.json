@@ -1164,6 +1164,31 @@
       "denied": "NEO service denied the request",
       "upstream_failed": "NEO service returned an invalid response or timed out",
       "cancelled": "NEO request cancelled"
+    },
+    "mcp": {
+      "too_large": "Request too large",
+      "parse_error": "Parse error",
+      "timeout": "Request timed out",
+      "invalid_request": "Invalid Request",
+      "invalid_params": "Invalid params",
+      "unknown_method": "Method not found",
+      "list_description": "List NEO capabilities",
+      "evaluate_description": "Evaluate a protected NEO indicator",
+      "unknown_tool": "Unknown tool",
+      "invalid_arguments": "Invalid tool arguments",
+      "origin_denied": "Browser MCP connections are not supported",
+      "bearer_required": "Bearer authentication is required",
+      "unsupported_version": "Unsupported MCP protocol version"
+    },
+    "market": {
+      "errors": {
+        "unavailable": "Market data service is not configured",
+        "upstream": "Market data service is temporarily unavailable",
+        "invalidRequest": "Invalid market data request",
+        "busy": "Market data service is busy; try again shortly",
+        "conflict": "Watchlist changed in another session. Reload before saving.",
+        "unsupported": "This market data source does not support this feature yet."
+      }
     }
   }
 }

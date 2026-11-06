@@ -211,3 +211,70 @@ def test_rejects_configured_database_hardlink(isolated, monkeypatch):
     monkeypatch.setenv("FINEROVE_DATABASE_SQLITE_PATH", str(alias))
     with pytest.raises(ValueError, match="hard.link"):
         configure_runtime()
+
+
+def test_setup_password_is_generated_independently_of_legacy_home(isolated):
+    from finerove.runtime import configure_runtime
+
+    legacy = isolated / "octop-login.txt"
+    legacy.write_text("old-installation-secret")
+    root = configure_runtime()
+    password_file = root / "octop-login.txt"
+    assert password_file.is_file()
+    password = password_file.read_text().strip()
+    assert len(password) >= 20
+    assert password != legacy.read_text()
+    assert legacy.read_text() == "old-installation-secret"
+    configure_runtime()
+    assert password_file.read_text().strip() == password
+    if os.name == "posix":
+        assert password_file.stat().st_mode & 0o777 == 0o600
+
+
+@pytest.mark.skipif(os.name != "posix", reason="symlinks require privileges on Windows")
+def test_setup_password_cannot_alias_legacy_home(isolated):
+    from finerove.runtime import configure_runtime
+
+    legacy = isolated / "octop-login.txt"
+    legacy.write_text("old-installation-secret")
+    root = isolated / ".finerove"
+    root.mkdir()
+    (root / "octop-login.txt").symlink_to(legacy)
+    with pytest.raises(ValueError):
+        configure_runtime()
+    assert legacy.read_text() == "old-installation-secret"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="symlinks require privileges on Windows")
+@pytest.mark.parametrize("kind", ["dangling_symlink", "directory"])
+def test_setup_password_must_be_an_independent_regular_file(isolated, kind):
+    from finerove.runtime import configure_runtime
+
+    legacy = isolated / "octop-login.txt"
+    legacy.write_text("old-installation-secret")
+    root = isolated / ".finerove"
+    root.mkdir()
+    path = root / "octop-login.txt"
+    if kind == "dangling_symlink":
+        path.symlink_to(isolated / "missing-password")
+    else:
+        path.mkdir()
+    with pytest.raises(ValueError, match="credential"):
+        configure_runtime()
+    assert legacy.read_text() == "old-installation-secret"
+    assert not (isolated / "missing-password").exists()
+
+
+def test_deleted_product_credential_does_not_read_legacy_password(isolated):
+    from finerove.runtime import configure_runtime
+    from octop.infra.setup.password_file import ensure_password, read_password
+
+    legacy = isolated / "octop-login.txt"
+    legacy.write_text("old-installation-secret")
+    root = configure_runtime()
+    product = root / "octop-login.txt"
+    product.unlink()
+    assert read_password(root, legacy_home=isolated) is None
+    ensure_password(root, legacy_home=isolated)
+    assert product.read_text().strip() != "old-installation-secret"
+    assert legacy.read_text() == "old-installation-secret"

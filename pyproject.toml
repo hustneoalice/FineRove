@@ -105,6 +105,10 @@ finerove = "finerove.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/octop", "src/finerove"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"licenses" = "octop/licenses"
+"THIRD_PARTY_NOTICES.md" = "octop/THIRD_PARTY_NOTICES.md"
+
 [tool.hatch.build]
 include = [
     "src/finerove/**/*.py",

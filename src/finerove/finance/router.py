@@ -1,6 +1,7 @@
 """Authenticated finance HTTP adapters and app lifecycle integration."""
 
 import asyncio
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
@@ -12,6 +13,10 @@ from octop.i18n import normalize_locale, tr
 from octop.infra.users.identity import User
 
 from .contracts import Catalog, EvaluationRequest, EvaluationResult
+from .market import MarketService
+from .market_router import router as market_router
+from .mcp import install_mcp
+from .native_market import NativeMarketService
 from .service import NeoService
 
 router = APIRouter(prefix="/api/finance/neo", tags=["Finance"])
@@ -62,12 +67,21 @@ def install_finance(app: FastAPI) -> None:
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         async with previous(application):
-            service = NeoService()
+            market = (
+                MarketService()
+                if os.getenv("FINEROVE_MARKET_BASE_URL", "").strip()
+                else NativeMarketService()
+            )
+            application.state.market_service = market
+            service = NeoService(market=market)
             application.state.neo_service = service
             try:
                 yield
             finally:
                 await service.close()
+                await market.close()
 
     app.router.lifespan_context = lifespan
     app.include_router(router)
+    app.include_router(market_router)
+    install_mcp(app)

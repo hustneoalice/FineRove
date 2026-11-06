@@ -15,3 +15,5 @@ The platform's `octop` Python namespace and package metadata are retained for up
 ## YuChao / 驭潮
 
 The financial data and NEO calculation service is a separate integration. Its current source repository identifies its license as AGPL-3.0-or-later. Core formulas and model weights are not included in this public client repository. Any later source integration requires retaining the applicable license and verifying source provenance.
+
+The generic candle presentation in `dashboard/src/pages/Finance/MarketChart.tsx` adapts the hollow-rising/solid-falling styling from YuChao `frontend/src/pages/kline.ts` (local source inspected 2026-11-06). This adapted file retains its AGPL notice; the upstream license text is included at `licenses/YuChao-AGPL-3.0.txt`. The platform's MIT notice does not relicense this adapted source. No NEO calculation implementations were imported.

@@ -1,0 +1,11 @@
+.finance-market-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .finance-market-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1164,6 +1164,31 @@
       "denied": "NEO 服务拒绝请求",
       "upstream_failed": "NEO 服务响应无效或超时",
       "cancelled": "NEO 请求已取消"
+    },
+    "mcp": {
+      "too_large": "请求过大",
+      "parse_error": "JSON解析失败",
+      "timeout": "请求超时",
+      "invalid_request": "无效请求",
+      "invalid_params": "无效参数",
+      "unknown_method": "方法不存在",
+      "list_description": "列出 NEO 能力",
+      "evaluate_description": "计算受保护的 NEO 指标",
+      "unknown_tool": "工具不存在",
+      "invalid_arguments": "工具参数无效",
+      "origin_denied": "暂不支持浏览器直接连接 MCP",
+      "bearer_required": "必须使用 Bearer 身份认证",
+      "unsupported_version": "不支持的 MCP 协议版本"
+    },
+    "market": {
+      "errors": {
+        "unavailable": "尚未配置行情数据服务",
+        "upstream": "行情数据服务暂不可用",
+        "invalidRequest": "行情请求参数无效",
+        "busy": "行情服务繁忙，请稍后重试",
+        "conflict": "自选已在其他会话中修改，请刷新后重试。",
+        "unsupported": "此行情源暂不支持该功能。"
+      }
     }
   }
 }

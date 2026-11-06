@@ -15,12 +15,19 @@ def _password_path(home: Path) -> Path:
     return home / WIZARD_FILE_NAME
 
 
+def _legacy_home(home: Path, legacy_home: Path | None) -> Path:
+    # FineRove must not fall back to another installation, including after file deletion.
+    if os.environ.get("FINEROVE_ACTIVE_HOME") == str(home.resolve()):
+        return home
+    return legacy_home or Path.home()
+
+
 def resolve_password_path(home: Path, legacy_home: Path | None = None) -> Path:
     """Return the primary password file path, or the legacy path if only the latter exists."""
     primary = _password_path(home)
     if primary.exists():
         return primary
-    legacy = _password_path(legacy_home or Path.home())
+    legacy = _password_path(_legacy_home(home, legacy_home))
     if legacy != primary and legacy.is_file():
         return legacy
     return primary
@@ -38,7 +45,7 @@ def ensure_password(home: Path, legacy_home: Path | None = None) -> str | None:
     target = _password_path(home)
     if target.exists():
         return None
-    legacy = _password_path(legacy_home or Path.home())
+    legacy = _password_path(_legacy_home(home, legacy_home))
     if legacy != target and legacy.is_file():
         legacy_pw = read_password(legacy.parent)
         if legacy_pw is not None:

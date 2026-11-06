@@ -7378,6 +7378,45 @@
     "chart": "趋势柱线结果",
     "empty": "当前范围没有可展示的数据。",
     "verification": "迁移公式尚未完成逐点一致性验证；请结合原始行情核对。",
-    "snapshot": "数据快照"
+    "snapshot": "数据快照",
+    "native": {
+      "title": "NEO 原生看盘工作台",
+      "rejected": "此操作暂未接入工作台。",
+      "tooLarge": "保存内容过大，请减少后重试。",
+      "failed": "数据暂不可用，请稍后重试。"
+    },
+    "market": {
+      "tab": "看盘与自选",
+      "neoTab": "NEO 自研指标",
+      "addWatchlist": "加入自选",
+      "adjust": "复权方式",
+      "allGroups": "全部分组",
+      "chartHint": "MA 均线 · VOL 成交量；阳线空心红，阴线实心绿。",
+      "close": "收盘",
+      "conflict": "自选股已在其他页面修改，已重新加载，请重试。",
+      "daily": "日线",
+      "emptyWatchlist": "自选股为空，搜索证券后加入。",
+      "group": "自选分组",
+      "hfq": "后复权",
+      "high": "最高",
+      "live": "未收盘",
+      "low": "最低",
+      "noBars": "暂无可用行情数据",
+      "noResults": "暂无搜索结果",
+      "open": "开盘",
+      "qfq": "前复权",
+      "raw": "不复权",
+      "refresh": "刷新",
+      "remove": "移除",
+      "removeWatchlist": "移出自选",
+      "retry": "重试",
+      "search": "搜索证券",
+      "searchHint": "输入代码或名称",
+      "shanghai": "上证指数",
+      "unconfigured": "行情服务尚未配置，请连接行情数据服务。",
+      "watchlist": "自选股",
+      "defaultGroup": "默认",
+      "chartLabel": "日K线图"
+    }
   }
 }

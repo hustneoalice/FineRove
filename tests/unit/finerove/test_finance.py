@@ -8,7 +8,7 @@ from finerove.finance.service import NeoService
 def test_closed_date_and_canonical_identity():
     with pytest.raises(ValidationError):
         EvaluationRequest(
-            capability="neo.trend_histogram", instrument_id="600519", end="2020-01-01"
+            capability="neo.trend_histogram", instrument_id="600519", end="2020-01-01", bars=[]
         )
     with pytest.raises(ValidationError):
         EvaluationRequest(
@@ -55,7 +55,10 @@ async def test_singleflight_is_per_user_and_survives_waiter_cancel(monkeypatch):
     client = httpx.AsyncClient(transport=httpx.MockTransport(upstream))
     service = NeoService(client)
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     one = asyncio.create_task(service.evaluate(1, body))
     await entered.wait()
@@ -86,7 +89,10 @@ async def test_redirect_malformed_and_transport_errors_do_not_leak(monkeypatch):
     }.items():
         monkeypatch.setenv("FINEROVE_NEO_" + key, value)
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     for status in [302, 200]:
 
@@ -117,7 +123,10 @@ async def test_upstream_401_preserves_local_login(monkeypatch):
         httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(401)))
     )
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     with pytest.raises(HTTPException) as err:
         await service.evaluate(1, body)
@@ -145,7 +154,10 @@ async def test_total_deadline_releases_capacity(monkeypatch):
 
     service = NeoService(httpx.AsyncClient(transport=httpx.MockTransport(upstream)))
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     with pytest.raises(HTTPException) as err:
         await asyncio.wait_for(service.evaluate(1, body), 0.5)
@@ -178,7 +190,10 @@ async def test_capacity_is_bounded_and_last_waiter_cancels(monkeypatch):
 
     service = NeoService(httpx.AsyncClient(transport=httpx.MockTransport(upstream)))
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     tasks = [asyncio.create_task(service.evaluate(i, body)) for i in range(8)]
     await asyncio.sleep(0)
@@ -276,7 +291,10 @@ async def test_http_disconnect_releases_last_computation_waiter(monkeypatch):
         receive=messages.get,
     )
     body = EvaluationRequest(
-        capability="neo.trend_histogram", instrument_id="CN:SH:stock:600519", end="2020-01-01"
+        capability="neo.trend_histogram",
+        instrument_id="CN:SH:stock:600519",
+        end="2020-01-01",
+        bars=[],
     )
     task = asyncio.create_task(evaluate(body, request, User(1, "test", "user", None)))
     await entered.wait()

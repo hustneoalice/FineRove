@@ -14,7 +14,9 @@ import jwt
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from .contracts import EvaluationRequest, EvaluationResult
+from .contracts import EvaluationRequest, EvaluationResult, InputBar
+from .market import MarketService
+from .native_market import NativeMarketService
 
 REQUEST_DEADLINE = 15.0
 
@@ -31,7 +33,11 @@ CAPABILITIES = (
 
 
 class NeoService:
-    def __init__(self, client: httpx.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        client: httpx.AsyncClient | None = None,
+        market: MarketService | NativeMarketService | None = None,
+    ) -> None:
         self.base = os.getenv("FINEROVE_NEO_BASE_URL", "").rstrip("/")
         self.key = os.getenv("FINEROVE_NEO_SIGNING_KEY", "")
         self.issuer = os.getenv("FINEROVE_NEO_ISSUER", "")
@@ -56,6 +62,8 @@ class NeoService:
             limits=httpx.Limits(max_connections=8, max_keepalive_connections=8),
         )
         self.inflight: dict[str, tuple[asyncio.Task[EvaluationResult], int]] = {}
+        self.market = market or NativeMarketService()
+        self._owns_market = market is None
 
     def catalog(self) -> dict[str, Any]:
         return {
@@ -83,6 +91,8 @@ class NeoService:
                 *(task for task, _ in self.inflight.values()), return_exceptions=True
             )
         await self.client.aclose()
+        if self._owns_market:
+            await self.market.close()
 
     async def evaluate(self, user_id: int, body: EvaluationRequest) -> EvaluationResult:
         if not self.configured:
@@ -110,6 +120,32 @@ class NeoService:
                     self.inflight[key] = (task, current[1] - 1)
 
     async def _request(self, user_id: int, body: EvaluationRequest) -> EvaluationResult:
+        try:
+            async with asyncio.timeout(REQUEST_DEADLINE):
+                return await self._compute(user_id, body)
+        except (httpx.HTTPError, ValidationError, ValueError, TimeoutError):
+            raise HTTPException(502, "finance.errors.upstream_failed") from None
+
+    async def _compute(self, user_id: int, body: EvaluationRequest) -> EvaluationResult:
+        if body.bars is None:
+            _, market, _, symbol = body.instrument_id.split(":")
+            history = await self.market.kline(f"{symbol}.{market}", adjust=body.adjust, limit=1000)
+            body = body.model_copy(
+                update={
+                    "bars": [
+                        InputBar.model_validate(
+                            {
+                                key: value
+                                for key, value in bar.model_dump().items()
+                                if key in InputBar.model_fields
+                            }
+                        )
+                        for bar in history.bars
+                        if bar.date <= body.end.isoformat()
+                    ]
+                }
+            )
+        digest = body.input_snapshot_id()
         now = int(time.time())
         token = jwt.encode(
             {
@@ -117,6 +153,7 @@ class NeoService:
                 "aud": "neo-compute",
                 "sub": str(user_id),
                 "scope": body.capability,
+                "input_snapshot_id": digest,
                 "iat": now,
                 "exp": now + 30,
                 "jti": uuid.uuid4().hex,
@@ -128,7 +165,7 @@ class NeoService:
             async with asyncio.timeout(REQUEST_DEADLINE):
                 response = await self.client.post(
                     self.base + "/api/v1/neo/evaluate",
-                    json=body.model_dump(mode="json"),
+                    json=body.model_dump(mode="json") | {"input_snapshot_id": digest},
                     headers={"Authorization": "Bearer " + token},
                 )
             if response.status_code == 401:
@@ -139,10 +176,15 @@ class NeoService:
             result = EvaluationResult.model_validate(response.json())
             if (
                 result.instrument_id != body.instrument_id
+                or result.capability != body.capability
+                or result.period != body.period
                 or result.adjust != body.adjust
-                or len(result.points) > body.limit
-                or any(p.date > body.end for p in result.points)
-                or (result.as_of is not None and result.as_of > body.end)
+                or result.input_snapshot_id != digest
+                or result.coverage.bars != len(body.bars or [])
+                or [p.date for p in result.points]
+                != [b.date for b in (body.bars or [])[-body.limit :]]
+                or result.as_of != (body.bars[-1].date if body.bars else None)
+                or result.status != ("ok" if body.bars else "empty")
             ):
                 raise ValueError("invalid result")
             return result
