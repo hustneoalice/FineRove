@@ -1,0 +1,1 @@
+"""Protected finance service adapters."""
